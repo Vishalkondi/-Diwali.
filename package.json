@@ -14,7 +14,9 @@
   "scripts": {
     "dev": "concurrently -k -n api,web -c magenta,yellow \"npm run dev -w @diwali-diya-dash/api\" \"npm run dev -w @diwali-diya-dash/web\"",
     "build": "npm run build -w @diwali-diya-dash/web && npm run build -w @diwali-diya-dash/api",
-    "vercel-build": "node scripts/vercel-build.mjs",
+    "vercel-build": "npm run build",
+    "db:migrate:prod": "tsx --env-file=.env.production.local apps/api/src/db/migrate.ts",
+    "db:seed:prod": "tsx --env-file=.env.production.local apps/api/src/db/seed.ts",
     "start": "npm run start -w @diwali-diya-dash/api",
     "typecheck": "npm run typecheck -w @diwali-diya-dash/api && npm run typecheck -w @diwali-diya-dash/web",
     "test": "npm run test -w @diwali-diya-dash/api",

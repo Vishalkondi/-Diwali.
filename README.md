@@ -135,3 +135,30 @@ Money is stored in integer paise everywhere. Percentage discounts round down to 
   - the fulfilment clock (`apps/api/src/lib/fulfilment.ts`) with real dispatch, picking and rider events that update order status. The SSE stream and tracker can stay as they are;
   - the public wish, diya and rangoli endpoints with moderation, and add abuse controls before opening them to the world.
 - The film, icons and scenes are all drawn in code; there are no image assets to license.
+
+## Deploying to Vercel
+
+One Vercel project serves both apps: [vercel.json](vercel.json) builds the web app into `apps/web/dist` (served as a SPA) and runs the Express API as a serverless function ([api/index.js](api/index.js)) behind `/api/*`. The order tracker's SSE stream ends at delivery (about 34 s by default), well inside the function's 60 s limit, and the page falls back to polling if a stream drops.
+
+**Project settings:** Root Directory `./`, Framework Preset **Other**. Leave Build Command, Output Directory and Install Command unset so `vercel.json` controls them.
+
+**Environment variables** (Settings → Environment Variables, all environments):
+
+| Name | Value |
+|---|---|
+| `DATABASE_URL` | From a hosted Postgres, e.g. Storage → Neon → Connect (added for you) |
+| `JWT_SECRET` | 32+ random characters (command above) |
+| `CORS_ORIGIN` | The site's own URL, e.g. `https://your-app.vercel.app` |
+
+Don't set `NODE_ENV`: Vercel sets it to `production` at runtime, and setting it at build time makes `npm ci` skip the build tools. Never put secrets in `VITE_` variables; the web app needs none (it calls the API on the same origin). Until `DATABASE_URL` and `JWT_SECRET` exist, the API answers 503 with a clear message.
+
+**The build never touches the database** (`vercel-build` is just `npm run build`). Migrate as a separate, deliberate step from your machine:
+
+```bash
+vercel env pull .env.production.local --environment=production   # gitignored
+npm run db:migrate:prod    # checks the connection, then applies pending Drizzle migrations
+npm run db:seed:prod       # first deploy only: loads the catalog, coupons and demo reviews
+rm .env.production.local
+```
+
+Re-running the seed upserts the catalog and resets stock to 100, so run it once on a fresh database, not on every deploy. Never run `db:reset` in production.
