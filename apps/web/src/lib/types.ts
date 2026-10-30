@@ -8,8 +8,28 @@ export type Product = {
   pricePaise: number;
   stock: number;
   badge: string | null;
+  /** Average star rating to one decimal, or null before the first review. */
+  rating: number | null;
+  ratingCount: number;
   category: { slug: string; name: string; icon: string; tint: string };
 };
+
+export type ProductDetail = Product & { description: string };
+
+export type ProductSort = 'featured' | 'price_asc' | 'price_desc' | 'rating' | 'popular';
+
+export type Review = {
+  id: number;
+  rating: number;
+  body: string;
+  name: string;
+  verified: boolean;
+  mine: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ReviewSummary = { avg: number | null; count: number; histogram: number[] };
 
 export type User = { id: string; name: string; email: string; createdAt: string };
 

@@ -1,11 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from './api';
-import type { Category, Coupon, Diya, Order, Prize, Product, Rangoli, Reward, User, Wish } from './types';
+import type { Category, Coupon, Diya, Order, Prize, Product, ProductDetail, ProductSort, Rangoli, Review, ReviewSummary, Reward, User, Wish } from './types';
 
 export const keys = {
   me: ['me'] as const,
   categories: ['categories'] as const,
-  products: (category: string, q: string) => ['products', category, q] as const,
+  products: (category: string, q: string, filters: ProductFilters = {}) => ['products', category, q, filters] as const,
+  product: (slug: string) => ['product', slug] as const,
+  reviews: (slug: string) => ['reviews', slug] as const,
   orders: ['orders'] as const,
   order: (id: string) => ['order', id] as const,
   rewards: ['rewards'] as const,
@@ -27,18 +29,37 @@ export const useCategories = () =>
     staleTime: Infinity,
   });
 
-export const useProducts = (category = '', q = '') =>
+/** Price bounds are in rupees. */
+export type ProductFilters = { sort?: ProductSort; minPrice?: number; maxPrice?: number };
+
+export const useProducts = (category = '', q = '', filters: ProductFilters = {}) =>
   useQuery({
-    queryKey: keys.products(category, q),
+    queryKey: keys.products(category, q, filters),
     queryFn: ({ signal }) => {
       const params = new URLSearchParams();
       if (category) params.set('category', category);
       if (q) params.set('q', q);
+      if (filters.sort && filters.sort !== 'featured') params.set('sort', filters.sort);
+      if (filters.minPrice !== undefined) params.set('minPrice', String(filters.minPrice));
+      if (filters.maxPrice !== undefined) params.set('maxPrice', String(filters.maxPrice));
       const qs = params.toString();
       return api<{ products: Product[] }>(`/products${qs ? `?${qs}` : ''}`, { signal }).then((r) => r.products);
     },
     placeholderData: (prev) => prev,
     staleTime: 30_000,
+  });
+
+export const useProduct = (slug: string) =>
+  useQuery({
+    queryKey: keys.product(slug),
+    queryFn: () => api<{ product: ProductDetail; related: Product[] }>(`/products/${encodeURIComponent(slug)}`),
+    staleTime: 30_000,
+  });
+
+export const useReviews = (slug: string) =>
+  useQuery({
+    queryKey: keys.reviews(slug),
+    queryFn: () => api<{ summary: ReviewSummary; reviews: Review[] }>(`/products/${encodeURIComponent(slug)}/reviews`),
   });
 
 export const useOrders = (enabled = true) =>
