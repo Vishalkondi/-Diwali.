@@ -6,6 +6,7 @@ import { api } from '../lib/api';
 import { keys, useMe } from '../lib/queries';
 import { cartCount, useCart } from '../stores/cart';
 import { celebrate } from '../stores/festive';
+import { useWishlist } from '../stores/wishlist';
 import { setBagTarget, useUi } from '../stores/ui';
 import { StringLights } from './StringLights';
 import { Wordmark } from './Wordmark';
@@ -55,6 +56,27 @@ function BagButton() {
         {count}
       </motion.span>
     </button>
+  );
+}
+
+function WishlistLink() {
+  const count = useWishlist((s) => s.slugs.length);
+  return (
+    <NavLink
+      to="/wishlist"
+      className={({ isActive }) => `relative grid h-11 w-11 place-items-center rounded-full transition-colors ${isActive ? 'bg-panel-2 text-rose' : 'text-muted hover:text-rose'}`}
+      aria-label={`Wishlist, ${count} saved`}
+      data-testid="wishlist-link"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill={count ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" aria-hidden="true">
+        <path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.9 4.5 7.2 4.5c2 0 3.6 1.1 4.8 2.8 1.2-1.7 2.8-2.8 4.8-2.8 3.3 0 5.6 3.1 4.4 6.6-1.7 4.8-9.2 9.4-9.2 9.4z" />
+      </svg>
+      {count > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-rose px-1 text-[11px] font-extrabold text-white ring-2 ring-ink" aria-hidden="true">
+          {count}
+        </span>
+      )}
+    </NavLink>
   );
 }
 
@@ -117,6 +139,7 @@ export function Header() {
               Sign in
             </NavLink>
           )}
+          <WishlistLink />
           <BagButton />
         </div>
       </div>

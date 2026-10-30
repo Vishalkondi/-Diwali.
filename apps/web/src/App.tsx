@@ -16,6 +16,8 @@ const Festival = lazy(() => import('./pages/Festival'));
 const DiyaWall = lazy(() => import('./pages/DiyaWall'));
 const RangoliStudio = lazy(() => import('./pages/RangoliStudio'));
 const RangoliView = lazy(() => import('./pages/RangoliView'));
+const Product = lazy(() => import('./pages/Product'));
+const Wishlist = lazy(() => import('./pages/Wishlist'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const DevFrame = lazy(() => import('./pages/DevFrame'));
 
@@ -41,6 +43,8 @@ export function App() {
               {import.meta.env.DEV && <Route path="/dev/frame" element={<DevFrame />} />}
               <Route element={<Layout />}>
                 <Route index element={<Home />} />
+                <Route path="p/:slug" element={<Product />} />
+                <Route path="wishlist" element={<Wishlist />} />
                 <Route path="login" element={<Auth mode="login" />} />
                 <Route path="register" element={<Auth mode="register" />} />
                 <Route path="checkout" element={<Checkout />} />

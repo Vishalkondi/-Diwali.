@@ -6,6 +6,7 @@ import { StageCanvas } from '../components/StageCanvas';
 import { currentCtx, renderScene } from '../engine';
 import { LAKSHMI_PUJA, useCountdown, useDebounced } from '../lib/festival';
 import { useCategories, useProducts } from '../lib/queries';
+import type { ProductSort } from '../lib/types';
 import { useUi } from '../stores/ui';
 
 const heroList: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.12, delayChildren: 0.15 } } };
@@ -105,20 +106,41 @@ function CountdownStrip() {
   );
 }
 
+const SORTS: { value: ProductSort; label: string }[] = [
+  { value: 'featured', label: 'Featured' },
+  { value: 'popular', label: 'Most popular' },
+  { value: 'rating', label: 'Top rated' },
+  { value: 'price_asc', label: 'Price: low to high' },
+  { value: 'price_desc', label: 'Price: high to low' },
+];
+
+/** Price bands in rupees. */
+const PRICES: { key: string; label: string; min?: number; max?: number }[] = [
+  { key: '', label: 'Any price' },
+  { key: 'u200', label: 'Under ₹200', max: 199 },
+  { key: '200-499', label: '₹200–499', min: 200, max: 499 },
+  { key: '500-999', label: '₹500–999', min: 500, max: 999 },
+  { key: '1000', label: '₹1,000+', min: 1000 },
+];
+
 function Store() {
   const [params, setParams] = useSearchParams();
   const cat = params.get('cat') ?? '';
+  const sort = SORTS.find((s) => s.value === params.get('sort'))?.value ?? 'featured';
+  const price = PRICES.find((p) => p.key === params.get('price')) ?? PRICES[0]!;
   const [query, setQuery] = useState('');
   const q = useDebounced(query.trim(), 250);
   const cats = useCategories();
-  const products = useProducts(cat, q);
+  const products = useProducts(cat, q, { sort, minPrice: price.min, maxPrice: price.max });
 
-  const setCat = (slug: string) => {
+  const setParam = (key: string, value: string) => {
     const next = new URLSearchParams(params);
-    if (slug) next.set('cat', slug);
-    else next.delete('cat');
+    if (value) next.set(key, value);
+    else next.delete(key);
     setParams(next, { replace: true, preventScrollReset: true });
   };
+  const setCat = (slug: string) => setParam('cat', slug);
+  const filtered = !!(q || cat || price.key);
 
   const tabs = [{ slug: '', name: 'All' }, ...(cats.data ?? [])];
 
@@ -169,6 +191,38 @@ function Store() {
         </div>
       </LayoutGroup>
 
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4" role="group" aria-label="Price">
+          {PRICES.map((p) => {
+            const on = p.key === price.key;
+            return (
+              <button
+                key={p.key || 'any'}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setParam('price', p.key)}
+                className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${on ? 'border-marigold bg-marigold/15 text-marigold' : 'border-line text-muted hover:text-cream'}`}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+        <label className="flex items-center gap-2 text-sm text-muted">
+          Sort by
+          <select
+            value={sort}
+            onChange={(e) => setParam('sort', e.target.value === 'featured' ? '' : e.target.value)}
+            className="field w-auto! rounded-full! py-1.5! pr-8 text-sm font-semibold"
+            data-testid="sort"
+          >
+            {SORTS.map((s) => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
       <div className="mt-6" aria-live="polite" aria-busy={products.isLoading}>
         {products.isError ? (
           <div className="card grid place-items-center gap-3 px-6 py-14 text-center">
@@ -183,9 +237,20 @@ function Store() {
         ) : products.data && products.data.length === 0 ? (
           <div className="card grid place-items-center gap-2 px-6 py-14 text-center">
             <p className="text-4xl" aria-hidden="true">🪔</p>
-            <p className="font-display text-2xl font-bold">Nothing matches “{q}”</p>
-            <p className="text-muted">Try “diya”, “laddoo” or “lights”.</p>
-            <button type="button" className="btn btn-ghost mt-2" onClick={() => { setQuery(''); setCat(''); }}>Clear filters</button>
+            <p className="font-display text-2xl font-bold">{q ? `Nothing matches “${q}”` : 'Nothing in this price range'}</p>
+            <p className="text-muted">{q ? 'Try “diya”, “laddoo” or “lights”.' : 'Try another price band or category.'}</p>
+            {filtered && (
+              <button
+                type="button"
+                className="btn btn-ghost mt-2"
+                onClick={() => {
+                  setQuery('');
+                  setParams(new URLSearchParams(), { replace: true, preventScrollReset: true });
+                }}
+              >
+                Clear filters
+              </button>
+            )}
           </div>
         ) : (
           <motion.div layout className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">

@@ -1,4 +1,5 @@
 import { forwardRef, useRef, useState } from 'react';
+import { Link } from 'react-router';
 import { motion, useMotionValue, useReducedMotion, useSpring, type Variants } from 'motion/react';
 import { productIconKey } from '../engine';
 import { inr } from '../lib/format';
@@ -7,6 +8,8 @@ import type { Product } from '../lib/types';
 import { qtyOf, useCart } from '../stores/cart';
 import { useUi } from '../stores/ui';
 import { ProductIcon } from './ProductIcon';
+import { SaveButton } from './SaveButton';
+import { RatingBadge } from './Stars';
 import { Stepper } from './Stepper';
 
 export const cardVariants: Variants = {
@@ -79,14 +82,21 @@ export const ProductCard = forwardRef<HTMLElement, { product: Product; index: nu
       aria-label={product.name}
     >
       <div ref={iconRef} className="relative grid aspect-[5/4] place-items-center overflow-hidden rounded-2xl" style={{ background: product.category.tint }}>
-        <ProductIcon icon={productIconKey(product)} size={150} active={active} className="max-w-[78%] transition-transform duration-300 group-hover:scale-105" />
+        <Link to={`/p/${product.slug}`} className="absolute inset-0" tabIndex={-1} aria-hidden="true" />
+        <ProductIcon icon={productIconKey(product)} size={150} active={active} className="pointer-events-none max-w-[78%] transition-transform duration-300 group-hover:scale-105" />
         {product.badge && (
-          <span className="absolute left-2 top-2 rounded-full bg-plum px-2.5 py-1 text-[11px] font-bold tracking-wide text-cream">{product.badge}</span>
+          <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-plum px-2.5 py-1 text-[11px] font-bold tracking-wide text-cream">{product.badge}</span>
         )}
+        <SaveButton slug={product.slug} name={product.name} className="absolute right-2 top-2 h-9 w-9" />
       </div>
       <div className="flex flex-1 flex-col px-1.5 pb-1 pt-3">
-        <h3 className="font-display text-[17px] font-extrabold leading-tight">{product.name}</h3>
+        <h3 className="font-display text-[17px] font-extrabold leading-tight">
+          <Link to={`/p/${product.slug}`} className="hover:underline focus-visible:underline">{product.name}</Link>
+        </h3>
         <p className="mt-0.5 line-clamp-2 text-[12.5px] leading-snug text-[#5b4a6e]">{product.subtitle}</p>
+        <div className="mt-1 min-h-4 text-[#3a2a4e]">
+          <RatingBadge rating={product.rating} count={product.ratingCount} />
+        </div>
         <div className="mt-auto flex items-end justify-between gap-2 pt-3">
           <span className="font-display text-lg font-extrabold">{inr(product.pricePaise)}</span>
           {soldOut ? (
