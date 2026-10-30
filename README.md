@@ -147,10 +147,10 @@ One Vercel project serves both apps: [vercel.json](vercel.json) builds the web a
 | Name | Value |
 |---|---|
 | `DATABASE_URL` | From a hosted Postgres, e.g. Storage → Neon → Connect (added for you) |
-| `JWT_SECRET` | 32+ random characters (command above) |
+| `JWT_SECRET` | Optional on Vercel (derived from `DATABASE_URL` when unset); set 32+ random characters to choose your own |
 | `CORS_ORIGIN` | The site's own URL, e.g. `https://your-app.vercel.app` |
 
-Don't set `NODE_ENV`: Vercel sets it to `production` at runtime, and setting it at build time makes `npm ci` skip the build tools. Never put secrets in `VITE_` variables; the web app needs none (it calls the API on the same origin). Until `DATABASE_URL` and `JWT_SECRET` exist, the API answers 503 with a clear message.
+Don't set `NODE_ENV`: Vercel sets it to `production` at runtime, and setting it at build time makes `npm ci` skip the build tools. Never put secrets in `VITE_` variables; the web app needs none (it calls the API on the same origin). Until `DATABASE_URL` exists, the API answers 503 with a clear message.
 
 **The build never touches the database** (`vercel-build` is just `npm run build`). Migrate as a separate, deliberate step from your machine:
 

@@ -1,6 +1,7 @@
 // Vercel serverless entry: every /api/* request is rewritten here (see vercel.json).
 // It runs the compiled Express app from apps/api/dist, built by the build command.
-const missing = ['DATABASE_URL', 'JWT_SECRET'].filter((k) => !process.env[k]);
+// JWT_SECRET is optional here: the API derives one from DATABASE_URL on Vercel (apps/api/src/env.ts).
+const missing = ['DATABASE_URL'].filter((k) => !process.env[k]);
 
 let handler;
 if (missing.length) {

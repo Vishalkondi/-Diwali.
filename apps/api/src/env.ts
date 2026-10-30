@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { z } from 'zod';
 
@@ -6,6 +7,12 @@ try {
   process.loadEnvFile(resolve(import.meta.dirname, '../../../.env'));
 } catch {
   // No .env file: rely on the real environment.
+}
+
+// On Vercel, a missing JWT_SECRET is derived from DATABASE_URL: it already holds the database
+// password, never leaves the server, and is identical on every instance. Set JWT_SECRET to override.
+if (process.env.VERCEL && !process.env.JWT_SECRET && process.env.DATABASE_URL) {
+  process.env.JWT_SECRET = createHash('sha256').update(`utsavly-session:${process.env.DATABASE_URL}`).digest('base64url');
 }
 
 const seconds = (fallback: number) => z.coerce.number().positive().default(fallback);
