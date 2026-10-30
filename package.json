@@ -1,0 +1,33 @@
+{
+  "name": "diwali-diya-dash",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Utsavly: a Diwali quick-commerce concept. Ghar ghar jagmag.",
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c magenta,yellow \"npm run dev -w @diwali-diya-dash/api\" \"npm run dev -w @diwali-diya-dash/web\"",
+    "build": "npm run build -w @diwali-diya-dash/web && npm run build -w @diwali-diya-dash/api",
+    "start": "npm run start -w @diwali-diya-dash/api",
+    "typecheck": "npm run typecheck -w @diwali-diya-dash/api && npm run typecheck -w @diwali-diya-dash/web",
+    "test": "npm run test -w @diwali-diya-dash/api",
+    "e2e": "node e2e/flow.mjs",
+    "e2e:frames": "node e2e/frames.mjs",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:generate": "npm run db:generate -w @diwali-diya-dash/api",
+    "db:migrate": "npm run db:migrate -w @diwali-diya-dash/api",
+    "db:seed": "npm run db:seed -w @diwali-diya-dash/api",
+    "db:reset": "npm run db:reset -w @diwali-diya-dash/api"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6",
+    "playwright": "^1.64.1"
+  }
+}
