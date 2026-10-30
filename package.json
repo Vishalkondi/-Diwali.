@@ -9,12 +9,12 @@
     "apps/web"
   ],
   "engines": {
-    "node": ">=22"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "concurrently -k -n api,web -c magenta,yellow \"npm run dev -w @diwali-diya-dash/api\" \"npm run dev -w @diwali-diya-dash/web\"",
     "build": "npm run build -w @diwali-diya-dash/web && npm run build -w @diwali-diya-dash/api",
-    "vercel-build": "npm run build && npm run db:migrate && npm run db:seed",
+    "vercel-build": "node scripts/vercel-build.mjs",
     "start": "npm run start -w @diwali-diya-dash/api",
     "typecheck": "npm run typecheck -w @diwali-diya-dash/api && npm run typecheck -w @diwali-diya-dash/web",
     "test": "npm run test -w @diwali-diya-dash/api",
