@@ -6,3 +6,5 @@ dist/
 coverage/
 e2e/screenshots/
 apps/web/tsconfig.tsbuildinfo
+
+.vercel
