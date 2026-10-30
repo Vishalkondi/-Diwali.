@@ -2,6 +2,13 @@
 // Without DATABASE_URL the site still deploys; the API answers 503 until a database is added.
 import { execSync } from 'node:child_process';
 
+// Locally the settings live in .env (the API loads it the same way); on Vercel they are real env vars.
+try {
+  process.loadEnvFile(new URL('../.env', import.meta.url));
+} catch {
+  // no .env: rely on the real environment
+}
+
 const run = (cmd) => execSync(cmd, { stdio: 'inherit' });
 
 run('npm run build');
